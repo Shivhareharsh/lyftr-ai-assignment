@@ -1,5 +1,3 @@
-import json
-import os
 import time
 from contextlib import asynccontextmanager
 
@@ -50,16 +48,9 @@ app = FastAPI(
 # ---------------------------------------------------------
 
 allowed_origins = [
-    origin.strip()
-    for origin in os.getenv(
-        "ALLOWED_ORIGINS",
-        (
-            "http://localhost:5173,"
-            "http://localhost:3000,"
-            "https://lyftr-ai-frontend-99eu.onrender.com"
-        ),
-    ).split(",")
-    if origin.strip()
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://lyftr-ai-frontend-99eu.onrender.com",
 ]
 
 app.add_middleware(
@@ -221,21 +212,13 @@ def chat(
         "session_id": request.session_id,
         "reply": reply,
         "metadata": {
-            "resolution_source": result[
-                "resolution_source"
-            ],
+            "resolution_source": result["resolution_source"],
             "model": result["model"],
             "latency_ms": latency_ms,
-            "input_tokens": result[
-                "input_tokens"
-            ],
-            "output_tokens": result[
-                "output_tokens"
-            ],
+            "input_tokens": result["input_tokens"],
+            "output_tokens": result["output_tokens"],
             "key_id": result["key_id"],
-            "fallback_attempts": result[
-                "fallback_attempts"
-            ],
+            "fallback_attempts": result["fallback_attempts"],
         },
     }
 
@@ -244,9 +227,7 @@ def chat(
 # GET SESSION HISTORY
 # ---------------------------------------------------------
 
-@app.get(
-    "/sessions/{session_id}/messages"
-)
+@app.get("/sessions/{session_id}/messages")
 def get_session_messages(
     session_id: str,
     db: Session = Depends(get_db),
