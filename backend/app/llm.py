@@ -32,13 +32,39 @@ ENABLE_FAILURE_SIMULATION = (
     == "true"
 )
 
-_raw_keys = os.getenv("LLM_API_KEYS", "")
 
-API_KEYS = [
-    key.strip()
-    for key in _raw_keys.split(",")
-    if key.strip()
-]
+# ---------------------------------------------------------
+# API KEYS
+# ---------------------------------------------------------
+
+# Preferred deployment configuration:
+#
+# GEMINI_API_KEY_1=<first key>
+# GEMINI_API_KEY_2=<second key>
+#
+# The old LLM_API_KEYS=key1,key2 format is also supported
+# so existing local configuration/tests continue to work.
+
+API_KEYS = []
+
+key_1 = os.getenv("GEMINI_API_KEY_1", "").strip()
+key_2 = os.getenv("GEMINI_API_KEY_2", "").strip()
+
+if key_1:
+    API_KEYS.append(key_1)
+
+if key_2:
+    API_KEYS.append(key_2)
+
+# Backwards compatibility with existing configuration.
+if not API_KEYS:
+    _raw_keys = os.getenv("LLM_API_KEYS", "")
+
+    API_KEYS = [
+        key.strip()
+        for key in _raw_keys.split(",")
+        if key.strip()
+    ]
 
 
 # ---------------------------------------------------------
@@ -131,13 +157,6 @@ def create_cache_key(
     messages: list[dict],
 ) -> str:
 
-    # Cache key = model + complete message list.
-    #
-    # This includes:
-    # - system prompt
-    # - previous conversation history
-    # - newest user message
-
     serialized = json.dumps(
         {
             "model": MODEL,
@@ -213,10 +232,6 @@ def generate_reply(
             or simulated_failures.get("*")
         )
 
-        # -------------------------------------------------
-        # Simulated provider failure
-        # -------------------------------------------------
-
         if simulated_status is not None:
             fallback_attempts += 1
             continue
@@ -260,7 +275,7 @@ def generate_reply(
                 )
 
             # ---------------------------------------------
-            # STORE COMPLETE CACHE ENTRY
+            # CACHE
             # ---------------------------------------------
 
             response_cache[cache_key] = {
